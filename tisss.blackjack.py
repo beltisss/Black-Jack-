@@ -1,22 +1,30 @@
-﻿from random import randint
+import random
+
+
 class Carte:
-    def __init__(self, _val, _coul):
-        self.valeur = _val
-        self.couleur = _coul
+    def __init__(self, valeur, couleur):
+        self.valeur = valeur
+        self.couleur = couleur
+
+    def points(self):
+        """Renvoie la valeur brute de la carte pour le calcul du score."""
+        if self.valeur == 1:
+            return 11
+        if 2 <= self.valeur <= 10:
+            return self.valeur
+        return 10
+
     def __str__(self):
-        """
-        renvoie la valeur et le couleur de la carte
-        """
         if self.valeur == 1:
             nom = "As"
-        elif self.valeur>=2 and self.valeur<=10:
+        elif 2 <= self.valeur <= 10:
             nom = str(self.valeur)
-        elif self.valeur == 11 :
-            nom = "valet"
-        elif self.valeur == 12 :
+        elif self.valeur == 11:
+            nom = "Valet"
+        elif self.valeur == 12:
             nom = "Dame"
-        else :
-            nom="Roi"
+        else:
+            nom = "Roi"
 
         if self.couleur == 0:
             couleur = "pique"
@@ -24,112 +32,141 @@ class Carte:
             couleur = "coeur"
         elif self.couleur == 2:
             couleur = "carreau"
-        else :
-            couleur = "trefle"
-        return nom + " de " +couleur
+        else:
+            couleur = "trèfle"
+
+        return f"{nom} de {couleur}"
+
 
 class Paquet:
     def __init__(self):
-        self.cartes = []
-        for i in range(1,14):
-          for j in range(4):
-            self.cartes.append(Carte(i,j))
-    def echanger(tab,a,b):
-        """
-        echange les valeurs aux indices a et b dans le tableau tab et renvoie tab
-        """
-        tmp=tab[a]
-        tab[a]=tab[b]
-        tab[b]=tmp
-        return tab
-    def melanger(self, _nb_iterations):
-        """
-        échange nb_iterations fois 2 indices aléatoires dans cartes
-        """
-        for _ in range(nb_iterations):
-            self.cartes = echanger(self.cartes,randint(0,len(self.cartes)-1),randint(0,len(self.cartes)-1))
+        self.cartes = [Carte(valeur, couleur) for valeur in range(1, 14) for couleur in range(4)]
+        self.melanger()
+
+    def melanger(self):
+        """Mélange le paquet de cartes."""
+        random.shuffle(self.cartes)
+
     def distribuer(self):
-        """
-        renvoie la 1ère carte du paquet et la retire du paquet
-        """
-        c = self.cartes[0]
-        self.cartes = [self.cartes[i]for i in range(1,len(self.cartes))]
-        return c
+        """Retire et renvoie la première carte du paquet."""
+        if not self.cartes:
+            raise ValueError("Le paquet est vide.")
+        return self.cartes.pop(0)
+
 
 class Main:
-    def __init__(self):
+    def __init__(self, nom):
+        self.nom = nom
         self.cartes = []
-    def score(self):
-        """
-        renvoie le score de la main en entier
-        """
-        nb_As = 0
-        score = 0
-        for i in range(len(self.cartes)):
-            if self.main[i].getValeur>=2 or self.main[i].getValeur<=10 : score = score +1
-            elif self.main[i].getValeur>=11 or self.main[i].getValeur<=13 : score = score +1
-            else: nb_As=nb_As+1
-        for i in range (As):
-            if score+11<=21: score = score + 11
-            else: score = score + 1
-            return score
-    def getScore(self):
-        return self.score
-    def eliminier(self):
-        if score>21: print("eliminé")
-    def ajouterCarte(self, _carte):
-        """
-        ajoute carte dans le tableau self.cartes
-        """
-        self.cartes.append(carte)
-    def afficher_banque(self):
-        print (self.cartes[0], "?")
-    def afficher_joueur(self):
-        for i in range(len(self.cartes)):
-            print(self.cartes[i])
 
+    def ajouter_carte(self, carte):
+        """Ajoute une carte à la main."""
+        self.cartes.append(carte)
+
+    def score(self):
+        """Calcule le score en gérant correctement les As."""
+        total = 0
+        nb_as = 0
+
+        for carte in self.cartes:
+            total += carte.points()
+            if carte.valeur == 1:
+                nb_as += 1
+
+        while total > 21 and nb_as > 0:
+            total -= 10
+            nb_as -= 1
+
+        return total
+
+    def est_buste(self):
+        return self.score() > 21
+
+    def afficher(self, cacher_premiere=False):
+        """Affiche la main. Option pour cacher la première carte de la banque."""
+        print(f"\n{self.nom} :")
+        for i, carte in enumerate(self.cartes):
+            if cacher_premiere and i == 0:
+                print("- [Carte cachée]")
+            else:
+                print(f"- {carte}")
+
+        if cacher_premiere:
+            print("Score visible : ?")
+        else:
+            print(f"Score : {self.score()}")
 
 
 class BlackJack:
     def __init__(self):
-        self.banquier = main()
-        self.joueurs = []
-        self.Paquet = Paquet()
-    def jeu(self):
-        for i in range(len(self.joueurs)):
-            while self.joueurs[i].getScore <=21:
-             self.joueurs.afficher_joueur
-             self.joueurs.score
-            demande = int(input("tu veux une nouvelle carte? Y/N"))
-            if reply == Y :
-             self.joueurs.distribuer()
-            else: print("break")
-        print("self.banquier.afficher_banque")
-        print("self.banquier.score")
-        for i in range(len(self.joueurs)):
-            if self.joueurs[i].getScore<= 21 and self.joueurs[i].getScore>self.banquier.score:
-                print("le joueur a gagné")
-            else: self.joueurs[i].eliminer()
+        self.paquet = Paquet()
+        self.joueur = Main("Joueur")
+        self.banquier = Main("Banquier")
+
+    def distribuer_depart(self):
+        for _ in range(2):
+            self.joueur.ajouter_carte(self.paquet.distribuer())
+            self.banquier.ajouter_carte(self.paquet.distribuer())
+
+    def tour_joueur(self):
+        while True:
+            self.joueur.afficher()
+            self.banquier.afficher(cacher_premiere=True)
+
+            if self.joueur.est_buste():
+                print("\nTu dépasses 21. Tu as perdu.")
+                return False
+
+            choix = input("\nVeux-tu une nouvelle carte ? (o/n) : ").strip().lower()
+            while choix not in {"o", "n"}:
+                choix = input("Réponds par 'o' pour oui ou 'n' pour non : ").strip().lower()
+
+            if choix == "o":
+                nouvelle = self.paquet.distribuer()
+                self.joueur.ajouter_carte(nouvelle)
+                print(f"\nTu pioches : {nouvelle}")
+            else:
+                return True
+
+    def tour_banquier(self):
+        print("\nTour du banquier...")
+        self.banquier.afficher()
+
+        while self.banquier.score() < 17:
+            carte = self.paquet.distribuer()
+            self.banquier.ajouter_carte(carte)
+            print(f"Le banquier pioche : {carte}")
+
+        self.banquier.afficher()
+
+    def afficher_resultat(self):
+        score_joueur = self.joueur.score()
+        score_banquier = self.banquier.score()
+
+        print("\n===== Résultat =====")
+        self.joueur.afficher()
+        self.banquier.afficher()
+
+        if self.banquier.est_buste():
+            print("\nLe banquier dépasse 21. Tu gagnes !")
+        elif score_joueur > score_banquier:
+            print("\nTu gagnes !")
+        elif score_joueur < score_banquier:
+            print("\nLe banquier gagne.")
+        else:
+            print("\nÉgalité.")
+
+    def jouer(self):
+        print("===== BLACKJACK =====")
+        self.distribuer_depart()
+
+        if not self.tour_joueur():
+            return
+
+        self.tour_banquier()
+        self.afficher_resultat()
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+if __name__ == "__main__":
+    jeu = BlackJack()
+    jeu.jouer()
